@@ -25,6 +25,13 @@ const baseY = canvas.height - 150;
 const ballRadius = 20;
 const amplitude = 120;
 
+
+const balls = [
+  { phase: 0, radius: 20, color: '#FFA07A', shape: 'ball' },
+  { phase: Math.PI * 2 / 3, radius: 18, color: '#FFD700', shape: 'star' },
+  { phase: Math.PI * 4 / 3, radius: 22, color: '#AFEEEE', shape: 'ball' }
+];
+
 // bubble configuration
 const sandHeight = 60;
 const bubbles = Array.from({ length: 15 }, () => ({
@@ -33,6 +40,7 @@ const bubbles = Array.from({ length: 15 }, () => ({
   radius: 2 + Math.random() * 3,
   speed: 0.5 + Math.random()
 }));
+
 
 function drawCrab(time) {
   const bodyX = centerX;
@@ -129,25 +137,55 @@ function drawEye(x, y) {
   ctx.fill();
 }
 
-function drawBall(x, y, time) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(time / 500);
-  ctx.fillStyle = 'white';
+function drawStar(radius, color) {
+  const inner = radius * 0.5;
+  ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.arc(0, 0, ballRadius, 0, Math.PI * 2);
+  for (let i = 0; i < 5; i++) {
+    const outerAngle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
+    const innerAngle = outerAngle + Math.PI / 5;
+    if (i === 0) {
+      ctx.moveTo(Math.cos(outerAngle) * radius, Math.sin(outerAngle) * radius);
+    } else {
+      ctx.lineTo(Math.cos(outerAngle) * radius, Math.sin(outerAngle) * radius);
+    }
+    ctx.lineTo(Math.cos(innerAngle) * inner, Math.sin(innerAngle) * inner);
+  }
+  ctx.closePath();
   ctx.fill();
   ctx.strokeStyle = 'black';
   ctx.lineWidth = 2;
   ctx.stroke();
+}
 
-  ctx.fillStyle = 'black';
-  for (let i = 0; i < 6; i++) {
+function drawBall(x, y, time, opts = {}) {
+  const radius = opts.radius || ballRadius;
+  const color = opts.color || 'white';
+  const shape = opts.shape || 'ball';
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(time / 500);
+
+  if (shape === 'star') {
+    drawStar(radius, color);
+  } else {
+    ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.arc(0, 0, ballRadius * 0.6, i * Math.PI / 3, i * Math.PI / 3 + Math.PI / 6);
-    ctx.closePath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
     ctx.fill();
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = 'black';
+    for (let i = 0; i < 6; i++) {
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, radius * 0.6, i * Math.PI / 3, i * Math.PI / 3 + Math.PI / 6);
+      ctx.closePath();
+      ctx.fill();
+    }
   }
   ctx.restore();
 }
@@ -195,8 +233,16 @@ function animate(time) {
   const ballY = baseY - Math.abs(Math.cos(angle)) * amplitude;
 
   drawCrab(time);
+
   drawBall(ballX, ballY, time);
   drawLoadingText(time);
+
+  balls.forEach(ball => {
+    const angle = time / 600 + ball.phase;
+    const x = centerX + amplitude * Math.sin(angle);
+    const y = baseY - Math.abs(Math.cos(angle)) * amplitude;
+    drawBall(x, y, time + ball.phase * 100, ball);
+  });
 
   requestAnimationFrame(animate);
 }
