@@ -25,7 +25,8 @@ const centerX = canvas.width / 2;
 const clawBaseY = canvas.height - 160;
 const ballRadius = 20;
 // horizontal and vertical amplitude for juggling path
-const amplitudeX = 190;
+// horizontal amplitude adjusted so balls reach the claws
+const amplitudeX = 120;
 const amplitudeY = 120;
 
 
@@ -118,10 +119,9 @@ function drawClaw(x, y, direction, angle) {
   ctx.quadraticCurveTo(55 * direction, -30, 70 * direction, -5);
   ctx.stroke();
 
-  // lower pincer
+  // lower pincer as an oval segment
   ctx.beginPath();
-  ctx.moveTo(35 * direction, -5);
-  ctx.quadraticCurveTo(55 * direction, 10, 70 * direction, 5);
+  ctx.ellipse(55 * direction, -2, 20, 10, 0, 0, Math.PI, true);
   ctx.stroke();
 
   ctx.restore();
