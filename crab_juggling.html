@@ -11,7 +11,7 @@
   canvas {
     display: block;
     margin: 0 auto;
-    background: #e0ffff; /* light cyan background */
+    background: none; /* background drawn via canvas */
   }
 </style>
 </head>
@@ -25,11 +25,22 @@ const baseY = canvas.height - 150;
 const ballRadius = 20;
 const amplitude = 120;
 
+
 const balls = [
   { phase: 0, radius: 20, color: '#FFA07A', shape: 'ball' },
   { phase: Math.PI * 2 / 3, radius: 18, color: '#FFD700', shape: 'star' },
   { phase: Math.PI * 4 / 3, radius: 22, color: '#AFEEEE', shape: 'ball' }
 ];
+
+// bubble configuration
+const sandHeight = 60;
+const bubbles = Array.from({ length: 15 }, () => ({
+  x: Math.random() * canvas.width,
+  y: canvas.height - sandHeight - Math.random() * 100,
+  radius: 2 + Math.random() * 3,
+  speed: 0.5 + Math.random()
+}));
+
 
 function drawCrab(time) {
   const bodyX = centerX;
@@ -37,21 +48,31 @@ function drawCrab(time) {
   const bodyWidth = 80;
   const bodyHeight = 40;
 
-  // body
-  ctx.fillStyle = '#000080'; // navy blue
+  // body with radial gradient for a rounded look
+  const bodyGradient = ctx.createRadialGradient(
+    bodyX,
+    bodyY - bodyHeight * 0.3,
+    bodyHeight * 0.3,
+    bodyX,
+    bodyY,
+    bodyWidth
+  );
+  bodyGradient.addColorStop(0, '#66aaff'); // lighter center
+  bodyGradient.addColorStop(1, '#000080'); // darker edges
+  ctx.fillStyle = bodyGradient;
   ctx.beginPath();
   ctx.ellipse(bodyX, bodyY, bodyWidth, bodyHeight, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // legs
+  // legs with subtle animation
   ctx.strokeStyle = '#000080';
   ctx.lineWidth = 4;
   for (let i = -3; i <= 3; i++) {
     if (i === 0) continue;
-    ctx.beginPath();
-    ctx.moveTo(bodyX + i * 15, bodyY + bodyHeight);
-    ctx.lineTo(bodyX + i * 15 + 10 * Math.sign(i), bodyY + bodyHeight + 20);
-    ctx.stroke();
+    const direction = Math.sign(i);
+    const baseX = bodyX + i * 15;
+    const baseY = bodyY + bodyHeight;
+    drawLeg(baseX, baseY, direction, i, time);
   }
 
   // claws animation
@@ -72,16 +93,36 @@ function drawClaw(x, y, direction, angle) {
   ctx.rotate(angle * direction);
   ctx.strokeStyle = '#000080';
   ctx.lineWidth = 6;
+
   ctx.beginPath();
   ctx.moveTo(0, 0);
-  ctx.lineTo(30 * direction, -20);
+  ctx.quadraticCurveTo(15 * direction, -15, 30 * direction, -20);
   ctx.stroke();
 
   ctx.beginPath();
   ctx.moveTo(30 * direction, -20);
-  ctx.lineTo(50 * direction, 0);
+  ctx.quadraticCurveTo(40 * direction, -10, 50 * direction, 0);
   ctx.stroke();
+
+  // closing pincer
+  ctx.beginPath();
+  ctx.moveTo(50 * direction, 0);
+  ctx.lineTo(60 * direction, -5);
+  ctx.moveTo(50 * direction, 0);
+  ctx.lineTo(60 * direction, 5);
+  ctx.stroke();
+
   ctx.restore();
+}
+
+function drawLeg(x, y, direction, index, time) {
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  const oscillation = Math.sin(time / 400 + index) * 5;
+  ctx.lineTo(x + 10 * direction, y + 15 + oscillation);
+  ctx.lineTo(x + 20 * direction, y + 30 + oscillation);
+  ctx.lineTo(x + 25 * direction, y + 45);
+  ctx.stroke();
 }
 
 function drawEye(x, y) {
@@ -148,8 +189,39 @@ function drawBall(x, y, time, opts = {}) {
   ctx.restore();
 }
 
+function drawBubbles() {
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  bubbles.forEach(b => {
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+    ctx.fill();
+    b.y -= b.speed;
+    if (b.y + b.radius < 0) {
+      b.y = canvas.height - sandHeight;
+      b.x = Math.random() * canvas.width;
+    }
+  });
+}
+
 function animate(time) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // sky/water background
+  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  gradient.addColorStop(0, '#87CEEB');
+  gradient.addColorStop(0.7, '#E0FFFF');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // seabed
+  ctx.fillStyle = '#F4A460';
+  ctx.fillRect(0, canvas.height - sandHeight, canvas.width, sandHeight);
+
+  drawBubbles();
+
+  const angle = time / 600;
+  const ballX = centerX + amplitude * Math.sin(angle);
+  const ballY = baseY - Math.abs(Math.cos(angle)) * amplitude;
 
   drawCrab(time);
   balls.forEach(ball => {
