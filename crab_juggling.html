@@ -31,8 +31,18 @@ function drawCrab(time) {
   const bodyWidth = 80;
   const bodyHeight = 40;
 
-  // body
-  ctx.fillStyle = '#000080'; // navy blue
+  // body with radial gradient for a rounded look
+  const bodyGradient = ctx.createRadialGradient(
+    bodyX,
+    bodyY - bodyHeight * 0.3,
+    bodyHeight * 0.3,
+    bodyX,
+    bodyY,
+    bodyWidth
+  );
+  bodyGradient.addColorStop(0, '#66aaff'); // lighter center
+  bodyGradient.addColorStop(1, '#000080'); // darker edges
+  ctx.fillStyle = bodyGradient;
   ctx.beginPath();
   ctx.ellipse(bodyX, bodyY, bodyWidth, bodyHeight, 0, 0, Math.PI * 2);
   ctx.fill();
