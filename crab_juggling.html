@@ -37,15 +37,15 @@ function drawCrab(time) {
   ctx.ellipse(bodyX, bodyY, bodyWidth, bodyHeight, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // legs
+  // legs with subtle animation
   ctx.strokeStyle = '#000080';
   ctx.lineWidth = 4;
   for (let i = -3; i <= 3; i++) {
     if (i === 0) continue;
-    ctx.beginPath();
-    ctx.moveTo(bodyX + i * 15, bodyY + bodyHeight);
-    ctx.lineTo(bodyX + i * 15 + 10 * Math.sign(i), bodyY + bodyHeight + 20);
-    ctx.stroke();
+    const direction = Math.sign(i);
+    const baseX = bodyX + i * 15;
+    const baseY = bodyY + bodyHeight;
+    drawLeg(baseX, baseY, direction, i, time);
   }
 
   // claws animation
@@ -66,16 +66,36 @@ function drawClaw(x, y, direction, angle) {
   ctx.rotate(angle * direction);
   ctx.strokeStyle = '#000080';
   ctx.lineWidth = 6;
+
   ctx.beginPath();
   ctx.moveTo(0, 0);
-  ctx.lineTo(30 * direction, -20);
+  ctx.quadraticCurveTo(15 * direction, -15, 30 * direction, -20);
   ctx.stroke();
 
   ctx.beginPath();
   ctx.moveTo(30 * direction, -20);
-  ctx.lineTo(50 * direction, 0);
+  ctx.quadraticCurveTo(40 * direction, -10, 50 * direction, 0);
   ctx.stroke();
+
+  // closing pincer
+  ctx.beginPath();
+  ctx.moveTo(50 * direction, 0);
+  ctx.lineTo(60 * direction, -5);
+  ctx.moveTo(50 * direction, 0);
+  ctx.lineTo(60 * direction, 5);
+  ctx.stroke();
+
   ctx.restore();
+}
+
+function drawLeg(x, y, direction, index, time) {
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  const oscillation = Math.sin(time / 400 + index) * 5;
+  ctx.lineTo(x + 10 * direction, y + 15 + oscillation);
+  ctx.lineTo(x + 20 * direction, y + 30 + oscillation);
+  ctx.lineTo(x + 25 * direction, y + 45);
+  ctx.stroke();
 }
 
 function drawEye(x, y) {
