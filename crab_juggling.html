@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Crab Juggling Animation</title>
+<style>
+  body {
+    margin: 0;
+    background: #f0f0f0;
+  }
+  canvas {
+    display: block;
+    margin: 0 auto;
+    background: #e0ffff; /* light cyan background */
+  }
+</style>
+</head>
+<body>
+<canvas id="crabCanvas" width="800" height="600"></canvas>
+<script>
+const canvas = document.getElementById('crabCanvas');
+const ctx = canvas.getContext('2d');
+const centerX = canvas.width / 2;
+const baseY = canvas.height - 150;
+const ballRadius = 20;
+const amplitude = 120;
+
+function drawCrab(time) {
+  const bodyX = centerX;
+  const bodyY = canvas.height - 80;
+  const bodyWidth = 80;
+  const bodyHeight = 40;
+
+  // body
+  ctx.fillStyle = '#000080'; // navy blue
+  ctx.beginPath();
+  ctx.ellipse(bodyX, bodyY, bodyWidth, bodyHeight, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // legs
+  ctx.strokeStyle = '#000080';
+  ctx.lineWidth = 4;
+  for (let i = -3; i <= 3; i++) {
+    if (i === 0) continue;
+    ctx.beginPath();
+    ctx.moveTo(bodyX + i * 15, bodyY + bodyHeight);
+    ctx.lineTo(bodyX + i * 15 + 10 * Math.sign(i), bodyY + bodyHeight + 20);
+    ctx.stroke();
+  }
+
+  // claws animation
+  const clawAngle = Math.sin(time / 500) * 0.5;
+  drawClaw(bodyX - bodyWidth, bodyY - 10, -1, clawAngle);
+  drawClaw(bodyX + bodyWidth, bodyY - 10, 1, -clawAngle);
+
+  // eyes
+  const eyeOffsetX = 20;
+  const eyeOffsetY = 25;
+  drawEye(bodyX - eyeOffsetX, bodyY - eyeOffsetY);
+  drawEye(bodyX + eyeOffsetX, bodyY - eyeOffsetY);
+}
+
+function drawClaw(x, y, direction, angle) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle * direction);
+  ctx.strokeStyle = '#000080';
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(30 * direction, -20);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(30 * direction, -20);
+  ctx.lineTo(50 * direction, 0);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawEye(x, y) {
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.arc(x, y, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'black';
+  ctx.beginPath();
+  ctx.arc(x, y, 3, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawBall(x, y, time) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(time / 500);
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.arc(0, 0, ballRadius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'black';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.fillStyle = 'black';
+  for (let i = 0; i < 6; i++) {
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, ballRadius * 0.6, i * Math.PI / 3, i * Math.PI / 3 + Math.PI / 6);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function animate(time) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const angle = time / 600;
+  const ballX = centerX + amplitude * Math.sin(angle);
+  const ballY = baseY - Math.abs(Math.cos(angle)) * amplitude;
+
+  drawCrab(time);
+  drawBall(ballX, ballY, time);
+
+  requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>
+
