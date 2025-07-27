@@ -27,9 +27,8 @@ const amplitude = 120;
 
 
 const balls = [
-  { phase: 0, radius: 20, color: '#FFA07A', shape: 'ball' },
-  { phase: Math.PI * 2 / 3, radius: 18, color: '#FFD700', shape: 'star' },
-  { phase: Math.PI * 4 / 3, radius: 22, color: '#AFEEEE', shape: 'ball' }
+  { phase: 0, radius: 20, color: '#FFFFFF', shape: 'soccer' },
+  { phase: Math.PI, radius: 22, color: '#FFFFFF', shape: 'soccer' }
 ];
 
 // bubble configuration
@@ -90,7 +89,7 @@ function drawCrab(time) {
 function drawClaw(x, y, direction, angle) {
   ctx.save();
   ctx.translate(x, y);
-  ctx.rotate(angle * direction);
+  ctx.rotate(angle * direction - direction * Math.PI / 2);
   ctx.strokeStyle = '#000080';
   ctx.fillStyle = '#66aaff';
   ctx.lineWidth = 6;
@@ -158,6 +157,26 @@ function drawStar(radius, color) {
   ctx.stroke();
 }
 
+function drawSoccerBall(radius) {
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'black';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.fillStyle = 'black';
+  for (let i = 0; i < 6; i++) {
+    const angle = i * Math.PI / 3;
+    const x = Math.cos(angle) * radius * 0.5;
+    const y = Math.sin(angle) * radius * 0.5;
+    ctx.beginPath();
+    ctx.arc(x, y, radius * 0.25, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
 function drawBall(x, y, time, opts = {}) {
   const radius = opts.radius || ballRadius;
   const color = opts.color || 'white';
@@ -169,6 +188,8 @@ function drawBall(x, y, time, opts = {}) {
 
   if (shape === 'star') {
     drawStar(radius, color);
+  } else if (shape === 'soccer') {
+    drawSoccerBall(radius);
   } else {
     ctx.fillStyle = color;
     ctx.beginPath();
@@ -177,15 +198,6 @@ function drawBall(x, y, time, opts = {}) {
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 2;
     ctx.stroke();
-
-    ctx.fillStyle = 'black';
-    for (let i = 0; i < 6; i++) {
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.arc(0, 0, radius * 0.6, i * Math.PI / 3, i * Math.PI / 3 + Math.PI / 6);
-      ctx.closePath();
-      ctx.fill();
-    }
   }
   ctx.restore();
 }
@@ -228,13 +240,7 @@ function animate(time) {
 
   drawBubbles();
 
-  const angle = time / 600;
-  const ballX = centerX + amplitude * Math.sin(angle);
-  const ballY = baseY - Math.abs(Math.cos(angle)) * amplitude;
-
   drawCrab(time);
-
-  drawBall(ballX, ballY, time);
   drawLoadingText(time);
 
   balls.forEach(ball => {
