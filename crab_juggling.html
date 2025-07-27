@@ -21,14 +21,17 @@
 const canvas = document.getElementById('crabCanvas');
 const ctx = canvas.getContext('2d');
 const centerX = canvas.width / 2;
-const baseY = canvas.height - 150;
+// vertical level where the claw tips sit
+const clawBaseY = canvas.height - 160;
 const ballRadius = 20;
-const amplitude = 120;
+// horizontal and vertical amplitude for juggling path
+const amplitudeX = 190;
+const amplitudeY = 120;
 
 
 const balls = [
-  { phase: 0, radius: 20, color: '#FFFFFF', shape: 'soccer' },
-  { phase: Math.PI, radius: 22, color: '#FFFFFF', shape: 'soccer' }
+  { phase: -Math.PI / 2, radius: 20, color: '#FFFFFF', shape: 'soccer' },
+  { phase: Math.PI / 2, radius: 22, color: '#FFFFFF', shape: 'soccer' }
 ];
 
 // bubble configuration
@@ -89,10 +92,19 @@ function drawCrab(time) {
 function drawClaw(x, y, direction, angle) {
   ctx.save();
   ctx.translate(x, y);
-  ctx.rotate(angle * direction - direction * Math.PI / 2);
   ctx.strokeStyle = '#000080';
   ctx.fillStyle = '#66aaff';
   ctx.lineWidth = 6;
+
+  // arm extending outward from the body
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(40 * direction, 0);
+  ctx.stroke();
+
+  // move to end of arm and rotate claw upward
+  ctx.translate(40 * direction, 0);
+  ctx.rotate(-direction * Math.PI / 2 + angle);
 
   // rounded base of the claw
   ctx.beginPath();
@@ -221,7 +233,7 @@ function drawLoadingText(time) {
   ctx.fillStyle = '#000080';
   ctx.textAlign = 'center';
   const dots = Math.floor(time / 500) % 4;
-  ctx.fillText('Loading' + '.'.repeat(dots), centerX, canvas.height - 20);
+  ctx.fillText('Loading' + '.'.repeat(dots), centerX, 60);
 }
 
 function animate(time) {
@@ -245,8 +257,8 @@ function animate(time) {
 
   balls.forEach(ball => {
     const angle = time / 600 + ball.phase;
-    const x = centerX + amplitude * Math.sin(angle);
-    const y = baseY - Math.abs(Math.cos(angle)) * amplitude;
+    const x = centerX + amplitudeX * Math.sin(angle);
+    const y = clawBaseY - Math.abs(Math.cos(angle)) * amplitudeY;
     drawBall(x, y, time + ball.phase * 100, ball);
   });
 
