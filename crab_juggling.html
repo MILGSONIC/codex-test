@@ -11,7 +11,7 @@
   canvas {
     display: block;
     margin: 0 auto;
-    background: #e0ffff; /* light cyan background */
+    background: none; /* background drawn via canvas */
   }
 </style>
 </head>
@@ -24,6 +24,15 @@ const centerX = canvas.width / 2;
 const baseY = canvas.height - 150;
 const ballRadius = 20;
 const amplitude = 120;
+
+// bubble configuration
+const sandHeight = 60;
+const bubbles = Array.from({ length: 15 }, () => ({
+  x: Math.random() * canvas.width,
+  y: canvas.height - sandHeight - Math.random() * 100,
+  radius: 2 + Math.random() * 3,
+  speed: 0.5 + Math.random()
+}));
 
 function drawCrab(time) {
   const bodyX = centerX;
@@ -112,8 +121,36 @@ function drawBall(x, y, time) {
   ctx.restore();
 }
 
+function drawBubbles() {
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  bubbles.forEach(b => {
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+    ctx.fill();
+    b.y -= b.speed;
+    if (b.y + b.radius < 0) {
+      b.y = canvas.height - sandHeight;
+      b.x = Math.random() * canvas.width;
+    }
+  });
+}
+
 function animate(time) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // sky/water background
+  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  gradient.addColorStop(0, '#87CEEB');
+  gradient.addColorStop(0.7, '#E0FFFF');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // seabed
+  ctx.fillStyle = '#F4A460';
+  ctx.fillRect(0, canvas.height - sandHeight, canvas.width, sandHeight);
+
+  drawBubbles();
+
   const angle = time / 600;
   const ballX = centerX + amplitude * Math.sin(angle);
   const ballY = baseY - Math.abs(Math.cos(angle)) * amplitude;
